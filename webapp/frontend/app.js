@@ -603,6 +603,23 @@
     if (on) refreshEdit(); else showPreview(editState.side, editState.tid);
   }
 
+  async function applyToSession() {
+    if (!editState.ops.length) { toast("No edits to apply.", true); return; }
+    const d = await (await fetch(api("/table_apply"), {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sid: state.sid, side: editState.side,
+        table_id: editState.tid, ops: editState.ops }) })).json();
+    if (d.error) { toast(d.error, true); return; }
+    // update local state so Map/Match pages see the edited table immediately
+    state.cols[editState.side] = d.side_columns;
+    state.tables[editState.side] = d.side_tables;
+    editState.ops = [];              // edits are now baked into the session table
+    renderTables(editState.side);
+    if ($("page-mapping").classList.contains("active")) refreshColumnPickers();
+    toast(`Updated "${d.table}" for matching (${d.rows} rows). Reconciliation will use this version.`);
+    closePreview();
+  }
+
   async function saveEdited() {
     const name = $("edit-name").value.trim();
     const d = await (await fetch(api("/table_save"), {
@@ -791,6 +808,7 @@
     $("preview-edit").onclick = () => toggleEdit(!editState.editing);
     $("edit-cancel").onclick = () => toggleEdit(false);
     $("edit-pivot").onclick = () => applyOp({ op: "pivot_long" });
+    $("edit-apply").onclick = applyToSession;
     $("edit-save").onclick = saveEdited;
     $("preview-modal").addEventListener("click", (e) => {
       if (e.target === $("preview-modal")) closePreview();

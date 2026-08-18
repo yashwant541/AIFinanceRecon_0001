@@ -343,6 +343,44 @@ def table_edit():
                     "is_complex": is_complex(edited), "qc": qc})
 
 
+@app.route("/table_apply", methods=["POST"])
+def table_apply():
+    """Apply edits to a table IN THIS SESSION so matching uses the edited
+    version. Does not touch the reference library (that's /table_save)."""
+    from financial_reconciliation.extraction.table_ops import apply_ops
+    from financial_reconciliation.models.documents import FinancialRecord
+    body = request.get_json(force=True)
+    try:
+        store = _get(body.get("sid", ""))
+    except KeyError as e:
+        return jsonify({"error": str(e)}), 404
+    side = body.get("side")
+    tid = body.get("table_id", "")
+    base = _find_table(store, side, tid)
+    if base is None:
+        return jsonify({"error": "table not found"}), 404
+    table = {"columns": base.columns,
+             "rows": [[r.values.get(c) for c in base.columns] for r in base.records]}
+    try:
+        edited = apply_ops(table, body.get("ops", []))
+    except Exception as e:  # noqa: BLE001
+        return jsonify({"error": f"could not apply edits: {e}"}), 400
+    # mutate the FinancialTable in place so it flows into mapping/matching
+    base.columns = list(edited["columns"])
+    base.records = [FinancialRecord(values=dict(zip(edited["columns"], r)),
+                                    source_file=base.source_file,
+                                    table_name=base.name, row_index=i)
+                    for i, r in enumerate(edited["rows"])]
+    # refresh the side's column list for the mapping page
+    session = store["session"]
+    return jsonify({"ok": True, "table_id": tid, "table": base.name,
+                    "columns": base.columns, "rows": base.row_count,
+                    "side_columns": session.columns(side),
+                    "side_tables": _tables_meta(
+                        session.left_extractions if side == "left"
+                        else session.right_extractions)})
+
+
 @app.route("/table_save", methods=["POST"])
 def table_save():
     """Save an edited table to the reference library as Filename + Tablename."""
