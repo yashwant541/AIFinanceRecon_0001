@@ -1,0 +1,279 @@
+<div class="shell">
+  <!-- ============ SIDEBAR (desktop) ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark"></div>
+      <div><h1>FinanceReconAI</h1><small>Reconciliation Engine</small></div>
+    </div>
+    <ul class="rail" id="rail">
+      <div class="prog" id="rail-prog"></div>
+      <li class="nav" data-page="overview" aria-current="true">
+        <span class="dot">◆</span><span class="txt"><span class="l">Overview</span><span class="s">Start here</span></span></li>
+      <li class="nav" data-page="upload" data-step="1">
+        <span class="dot">1</span><span class="txt"><span class="l">Upload</span><span class="s">Left &amp; right files</span></span></li>
+      <li class="nav locked" data-page="mapping" data-step="2">
+        <span class="dot">2</span><span class="txt"><span class="l">Map fields</span><span class="s">Keys &amp; values</span></span></li>
+      <li class="nav locked" data-page="matching" data-step="3">
+        <span class="dot">3</span><span class="txt"><span class="l">Matching</span><span class="s">Rules &amp; tolerances</span></span></li>
+      <li class="nav locked" data-page="results" data-step="4">
+        <span class="dot">4</span><span class="txt"><span class="l">Results</span><span class="s">Variance &amp; export</span></span></li>
+      <li class="nav" data-page="admin">
+        <span class="dot">⚙</span><span class="txt"><span class="l">Admin</span><span class="s">References &amp; synonyms</span></span></li>
+    </ul>
+    <div class="side-foot">
+      <div class="theme-toggle" role="group" aria-label="Theme">
+        <button data-theme-set="light" aria-pressed="true">☀ Light</button>
+        <button data-theme-set="dark" aria-pressed="false">☾ Dark</button>
+      </div>
+      <div class="privacy"><span class="d"></span> In-memory only — nothing is stored.</div>
+    </div>
+  </aside>
+
+  <!-- ============ TOP BAR (mobile) ============ -->
+  <header class="topbar">
+    <div class="row">
+      <div class="mark"></div><h1>FinanceReconAI</h1>
+      <div class="tt" role="group" aria-label="Theme">
+        <button data-theme-set="light" aria-pressed="true">☀</button>
+        <button data-theme-set="dark" aria-pressed="false">☾</button>
+      </div>
+    </div>
+    <div class="mini-steps" id="mini-steps">
+      <div class="ms" data-page="overview" aria-current="true"><span class="d">◆</span>Overview</div>
+      <div class="ms" data-page="upload"><span class="d">1</span>Upload</div>
+      <div class="ms" data-page="mapping"><span class="d">2</span>Map</div>
+      <div class="ms" data-page="matching"><span class="d">3</span>Match</div>
+      <div class="ms" data-page="results"><span class="d">4</span>Results</div>
+      <div class="ms" data-page="admin"><span class="d">⚙</span>Admin</div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- ============ OVERVIEW ============ -->
+    <section class="page active" id="page-overview">
+      <div class="hero">
+        <div>
+          <div class="eyebrow">Reconciliation engine</div>
+          <h2>Tie out two sides of the books, <span class="seam-word">line by line.</span></h2>
+          <p>Drop statements, ledgers and schedules on each side — PDF, Word, Excel, CSV or
+             text tables. FinanceReconAI reads the tables, matches line items, and shows you
+             exactly where the numbers agree and where they break.</p>
+          <div class="cta">
+            <button class="btn" id="hero-start">Start reconciliation →</button>
+            <button class="btn ghost" id="hero-how">How it works</button>
+          </div>
+          <div class="chips">
+            <span class="chip"><span class="k">5</span> file formats</span>
+            <span class="chip">auto <span class="k">column</span> mapping</span>
+            <span class="chip"><span class="k">Decimal</span> variance</span>
+            <span class="chip">explainable <span class="k">matches</span></span>
+          </div>
+        </div>
+        <div class="hero-art" id="hero-art"></div>
+      </div>
+      <div class="feature-row">
+        <div class="feature"><div class="n">01</div><h4>Extract</h4>
+          <p>Finds real headers on any row and splits multiple tables per sheet.</p></div>
+        <div class="feature"><div class="n">02</div><h4>Map</h4>
+          <p>Auto-aligns columns across sides by value overlap — even when renamed.</p></div>
+        <div class="feature"><div class="n">03</div><h4>Match</h4>
+          <p>Exact, fuzzy and semantic matching with an explained confidence.</p></div>
+        <div class="feature"><div class="n">04</div><h4>Reconcile</h4>
+          <p>Per-field variance with tolerances, then export a clean workbook.</p></div>
+      </div>
+    </section>
+
+    <!-- ============ UPLOAD ============ -->
+    <section class="page" id="page-upload">
+      <div class="page-head">
+        <div class="eyebrow">Step 01 · Upload</div>
+        <h2>Add your documents</h2>
+        <p>Everything reconciles the left side against the right. Mix formats freely on each side.</p>
+      </div>
+      <div class="sides">
+        <div class="card">
+          <div class="side-head"><span class="lbl">◀ Left side</span><span class="tag" id="left-count">0 files</span></div>
+          <div class="dropzone" id="left-drop" tabindex="0" role="button" aria-label="Add left files">
+            <div class="ic">↑</div><div class="t">Drop files or browse</div>
+            <div class="h">PDF · DOCX · XLSX · CSV · TXT</div>
+            <input type="file" id="left-input" multiple hidden
+                   accept=".pdf,.docx,.xlsx,.xlsm,.xls,.csv,.tsv,.txt">
+          </div>
+          <div class="stage" id="left-stage"></div>
+          <ul class="filelist" id="left-list"></ul>
+          <div class="tables" id="left-tables"></div>
+          <div class="warnbox" id="left-warn"></div>
+        </div>
+        <div class="seam-col"><div class="seam-badge">⇄</div></div>
+        <div class="card">
+          <div class="side-head"><span class="lbl">Right side ▶</span><span class="tag" id="right-count">0 files</span></div>
+          <div class="dropzone" id="right-drop" tabindex="0" role="button" aria-label="Add right files">
+            <div class="ic">↑</div><div class="t">Drop files or browse</div>
+            <div class="h">PDF · DOCX · XLSX · CSV · TXT</div>
+            <input type="file" id="right-input" multiple hidden
+                   accept=".pdf,.docx,.xlsx,.xlsm,.xls,.csv,.tsv,.txt">
+          </div>
+          <div class="refpick">
+            <div class="thd">…or reconcile against a pre-processed reference</div>
+            <div style="display:flex;gap:8px">
+              <select id="ref-select"><option value="">— select a reference —</option></select>
+              <button class="btn ghost sm" id="ref-use">Use</button>
+            </div>
+          </div>
+          <div class="stage" id="right-stage"></div>
+          <ul class="filelist" id="right-list"></ul>
+          <div class="tables" id="right-tables"></div>
+          <div class="warnbox" id="right-warn"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MAPPING ============ -->
+    <section class="page" id="page-mapping">
+      <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;max-width:none;flex-wrap:wrap">
+        <div style="max-width:720px">
+          <div class="eyebrow">Step 02 · Map fields</div>
+          <h2>Line up the columns</h2>
+          <p>Define canonical fields, pick the source column on each side, and mark which are keys
+             and which are values. Or let the engine suggest a mapping from your data.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="suggest-btn">✨ Auto-suggest mapping</button>
+          <button class="btn ghost" id="clear-map-btn">Clear all mappings</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="map-scroll">
+          <table class="map">
+            <thead><tr>
+              <th>Canonical</th><th>Role</th><th>Type</th><th>Left column</th><th>Right column</th>
+              <th>Abs&nbsp;tol</th><th>Rel&nbsp;%</th><th>Fuzzy≥</th><th>Aggregate</th><th></th>
+            </tr></thead>
+            <tbody id="fields-body"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:16px"><button class="btn ghost sm" id="add-field">+ Add field</button></div>
+      </div>
+    </section>
+
+    <!-- ============ MATCHING ============ -->
+    <section class="page" id="page-matching">
+      <div class="page-head">
+        <div class="eyebrow">Step 03 · Matching</div>
+        <h2>Set the matching rules</h2>
+        <p>Exact keys always match first. Configure the fuzzy and semantic fallback, tolerances,
+           and blocking for large files.</p>
+      </div>
+      <div class="card">
+        <div class="form-grid">
+          <label class="chk"><input type="checkbox" id="fuzzy-enabled" checked> Fuzzy key matching</label>
+          <label class="f">Fuzzy threshold (0–100)<input class="num" type="number" id="fuzzy-threshold" value="90" min="0" max="100"></label>
+          <label class="f">Accept confidence (0–1)<input class="num" type="number" id="accept-threshold" value="0.6" min="0" max="1" step="0.05"></label>
+          <label class="chk"><input type="checkbox" id="semantic-enabled"> Semantic (TF-IDF) matching</label>
+          <label class="f">Semantic threshold (0–100)<input class="num" type="number" id="semantic-threshold" value="75" min="0" max="100"></label>
+          <label class="f">Blocking key field <span style="color:var(--faint)">(optional)</span>
+            <select id="blocking-field"><option value="">— none —</option></select></label>
+          <label class="chk"><input type="checkbox" id="numeric-enabled"> Numeric proximity signal</label>
+          <label class="chk"><input type="checkbox" id="casefold-keys" checked> Case-insensitive keys</label>
+          <label class="chk"><input type="checkbox" id="dayfirst"> Dates are day-first (DD/MM)</label>
+          <label class="chk"><input type="checkbox" id="melt-mode"> Reshape to tidy/long (match references)</label>
+          <label class="chk"><input type="checkbox" id="strip-non-english"> Remove non-English characters</label>
+        </div>
+        <div class="muted" style="margin-top:12px" id="syn-note"></div>
+      </div>
+    </section>
+
+    <!-- ============ ADMIN ============ -->
+    <section class="page" id="page-admin">
+      <div class="page-head">
+        <div class="eyebrow">Admin</div>
+        <h2>Reference library &amp; synonyms</h2>
+        <p>Upload pre-processed documents users can reconcile against, and a global
+           synonyms list applied to all matching. Enter your admin token to unlock.</p>
+      </div>
+      <div class="card" id="admin-login-card" style="max-width:460px">
+        <div class="card-title">Sign in</div>
+        <label class="f" style="margin-bottom:10px">Username
+          <input id="admin-user" autocomplete="username" placeholder="admin"></label>
+        <label class="f" style="margin-bottom:14px">Password
+          <input id="admin-pass" type="password" autocomplete="current-password"
+                 placeholder="••••••••"></label>
+        <button class="btn sm" id="admin-login-btn">Log in</button>
+        <div class="muted" style="margin-top:10px">Credentials are set in
+          <span class="num">financial_reconciliation/auth.py</span> (or via environment).</div>
+      </div>
+
+      <div id="admin-panels" style="display:none">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Upload a pre-processed reference</div>
+            <label class="f" style="margin-bottom:10px">Name
+              <input id="ref-name" placeholder="e.g. Standard Chartered Q1'26"></label>
+            <label class="chk" style="margin-bottom:10px"><input type="checkbox" id="ref-melt">
+              Pre-process a raw file (melt to tidy/long)</label>
+            <input type="file" id="ref-file"
+                   accept=".xlsx,.xlsm,.xls,.json,.pdf,.docx,.csv,.txt">
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn sm" id="ref-upload">Save to library</button>
+              <button class="btn ghost sm" id="ref-download">Download processed .xlsx</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Upload a synonyms list</div>
+            <p class="muted" style="margin:0 0 10px">JSON, CSV or TXT. First term per group is
+               canonical, e.g. <span class="num">Non-Interest Income, NII, NII Islamic Banking</span>.</p>
+            <input type="file" id="syn-file" accept=".json,.csv,.tsv,.txt">
+            <div style="margin-top:12px"><button class="btn sm" id="syn-upload">Save global synonyms</button></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <div class="card-title">Current references</div>
+          <div id="ref-manage"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RESULTS ============ -->
+    <section class="page" id="page-results">
+      <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;max-width:none;flex-wrap:wrap">
+        <div>
+          <div class="eyebrow">Step 04 · Results</div>
+          <h2>Reconciliation</h2>
+          <p id="results-sub">—</p>
+        </div>
+        <button class="btn" id="export-btn">⤓ Export workbook</button>
+      </div>
+      <div class="metrics" id="metrics"></div>
+      <div class="result-top">
+        <div class="card gauge-card" id="gauge-card"></div>
+        <div class="card">
+          <div class="card-title">Variance by field</div>
+          <div id="variance"></div>
+        </div>
+      </div>
+      <div class="tabs" id="result-tabs" role="tablist"></div>
+      <div class="tablewrap" id="result-panel"></div>
+    </section>
+  </main>
+
+  <!-- ============ STICKY ACTION BAR ============ -->
+  <div class="stepbar" id="stepbar">
+    <button class="btn ghost" id="step-back">← Back</button>
+    <span class="hint" id="step-hint"></span>
+    <span class="grow"></span>
+    <button class="btn" id="step-primary">Continue →</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="preview-modal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="preview-title">Table</div>
+        <div class="modal-sub" id="preview-sub"></div>
+      </div>
+      <button class="btn ghost sm" id="preview-close" aria-label="Close">✕ Close</button>
+    </div>
+    <div class="modal-body" id="preview-body"></div>
+  </div>
+</div>
