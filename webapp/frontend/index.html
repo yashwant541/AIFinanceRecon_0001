@@ -272,7 +272,18 @@
         <div class="modal-title" id="preview-title">Table</div>
         <div class="modal-sub" id="preview-sub"></div>
       </div>
-      <button class="btn ghost sm" id="preview-close" aria-label="Close">✕ Close</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn ghost sm" id="preview-edit">✎ Edit table</button>
+        <button class="btn ghost sm" id="preview-close" aria-label="Close">✕ Close</button>
+      </div>
+    </div>
+    <div class="edit-bar" id="edit-bar" style="display:none">
+      <span class="eb-hint" id="edit-hint">Edit mode</span>
+      <span class="eb-grow"></span>
+      <button class="btn ghost sm" id="edit-pivot">⇄ Complex → Simple</button>
+      <input id="edit-name" placeholder="Save as name…" style="width:190px">
+      <button class="btn sm" id="edit-save">Save to library</button>
+      <button class="btn ghost sm" id="edit-cancel">Done</button>
     </div>
     <div class="modal-body" id="preview-body"></div>
   </div>

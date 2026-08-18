@@ -508,9 +508,15 @@
     window.location = api("/export") + "?sid=" + encodeURIComponent(state.sid);
   }
 
-  // ---------------- table preview modal ----------------
+  // ---------------- table preview + edit ----------------
+  const editState = { side: null, tid: null, ops: [], editing: false, file: "" };
+
   async function showPreview(side, tid) {
     const modal = $("preview-modal");
+    editState.side = side; editState.tid = tid; editState.ops = []; editState.editing = false;
+    $("edit-bar").style.display = "none";
+    $("preview-body").classList.remove("editing");
+    $("preview-edit").textContent = "✎ Edit table";
     $("preview-title").textContent = "Loading…";
     $("preview-sub").textContent = "";
     $("preview-body").innerHTML = '<div class="empty">Fetching table…</div>';
@@ -520,28 +526,98 @@
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sid: state.sid, side, table_id: tid }) })).json();
       if (d.error) { $("preview-body").innerHTML = `<div class="empty">${esc(d.error)}</div>`; return; }
+      editState.file = d.file;
       $("preview-title").textContent = d.table;
-      const qc = d.qc || {};
-      let qcTxt = "";
-      if (qc.status === "ok") qcTxt = ` · ✓ QC ${qc.passed}/${qc.checked} subtotals foot`;
-      else if (qc.status === "check") qcTxt = ` · ⚠ QC ${qc.passed}/${qc.checked} — verify totals`;
-      $("preview-sub").textContent =
-        `${esc(d.file)} · ${d.total_rows} rows × ${d.columns.length} columns` +
-        (d.truncated ? " · showing first 500" : "") + qcTxt;
-      const head = d.columns.map((c) => `<th>${esc(c)}</th>`).join("");
-      const body = d.rows.map((r) => "<tr>" + r.map((v) => {
-        const num = typeof v === "number";
-        return `<td class="${num ? "n" : ""}">${v === null || v === undefined ? "" : esc(fmt(v))}</td>`;
-      }).join("") + "</tr>").join("");
-      $("preview-body").innerHTML =
-        `<table class="data"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+      renderPreviewTable(d.columns, d.rows, d);
     } catch (e) {
       $("preview-body").innerHTML = '<div class="empty">Could not load this table.</div>';
     }
   }
+
+  function qcText(qc) {
+    if (!qc) return "";
+    if (qc.status === "ok") return ` · ✓ QC ${qc.passed}/${qc.checked} subtotals foot`;
+    if (qc.status === "check") return ` · ⚠ QC ${qc.passed}/${qc.checked} — verify totals`;
+    return "";
+  }
+
+  function renderPreviewTable(columns, rows, meta) {
+    const editing = editState.editing;
+    $("preview-sub").textContent =
+      `${esc(editState.file)} · ${rows.length} rows × ${columns.length} columns` +
+      (meta.truncated ? " · showing first 500" : "") + qcText(meta.qc);
+    const head = columns.map((c) => `<th>${esc(c)}</th>`).join("");
+    const body = rows.map((r, ri) => {
+      const tools = editing
+        ? `<span class="row-tools"><button data-promote="${ri}" title="Use this row as header">⤒</button>` +
+          `<button data-del="${ri}" title="Delete row">✕</button></span>`
+        : "";
+      return "<tr>" + columns.map((c, ci) => {
+        const v = r[ci];
+        const num = typeof v === "number";
+        const cell = v === null || v === undefined ? "" : esc(fmt(v));
+        if (ci === 0) {
+          return `<td class="label">${tools}<span class="${editing ? "lbl" : ""}" ${
+            editing ? `contenteditable="true" data-row="${ri}"` : ""}>${cell}</span></td>`;
+        }
+        return `<td class="${num ? "n" : ""}">${cell}</td>`;
+      }).join("") + "</tr>";
+    }).join("");
+    $("preview-body").innerHTML =
+      (editing ? '<div class="mini-note">⤒ makes a row the header · ✕ deletes a row · click a label to edit its text · values are locked.</div>' : "") +
+      `<table class="data"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+    if (editing) wireEditHandlers();
+  }
+
+  function wireEditHandlers() {
+    qsa("[data-promote]", $("preview-body")).forEach((b) => (b.onclick = () =>
+      applyOp({ op: "promote_header", row: Number(b.dataset.promote) })));
+    qsa("[data-del]", $("preview-body")).forEach((b) => (b.onclick = () =>
+      applyOp({ op: "delete_rows", rows: [Number(b.dataset.del)] })));
+    qsa(".lbl[contenteditable]", $("preview-body")).forEach((el) => (el.onblur = () => {
+      applyOp({ op: "edit_label", row: Number(el.dataset.row), text: el.textContent.trim() });
+    }));
+  }
+
+  async function applyOp(op) { editState.ops.push(op); await refreshEdit(); }
+
+  async function refreshEdit() {
+    try {
+      const d = await (await fetch(api("/table_edit"), {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sid: state.sid, side: editState.side,
+          table_id: editState.tid, ops: editState.ops }) })).json();
+      if (d.error) { toast(d.error, true); return; }
+      $("edit-pivot").disabled = !d.is_complex;
+      $("edit-pivot").title = d.is_complex ? "" : "Already simple — cannot pivot";
+      $("edit-hint").textContent = `Edit mode · ${d.total_rows} rows`;
+      renderPreviewTable(d.columns, d.rows, { qc: d.qc, truncated: false });
+    } catch (e) { toast("Edit failed.", true); }
+  }
+
+  function toggleEdit(on) {
+    editState.editing = on;
+    $("edit-bar").style.display = on ? "flex" : "none";
+    $("preview-body").classList.toggle("editing", on);
+    $("preview-edit").textContent = on ? "Viewing" : "✎ Edit table";
+    if (on) refreshEdit(); else showPreview(editState.side, editState.tid);
+  }
+
+  async function saveEdited() {
+    const name = $("edit-name").value.trim();
+    const d = await (await fetch(api("/table_save"), {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sid: state.sid, side: editState.side,
+        table_id: editState.tid, name: name || undefined, ops: editState.ops }) })).json();
+    if (d.error) { toast(d.error, true); return; }
+    toast(`Saved "${d.ref_id}" to the library (${d.rows} rows).`);
+    loadReferences();
+  }
+
   function closePreview() {
     const m = $("preview-modal");
     m.classList.remove("open"); m.setAttribute("aria-hidden", "true");
+    editState.editing = false; $("edit-bar").style.display = "none";
   }
 
   // ---------------- references & admin ----------------
@@ -712,6 +788,10 @@
     $("export-btn").onclick = exportWorkbook;
     $("ref-use").onclick = useReference;
     $("preview-close").onclick = closePreview;
+    $("preview-edit").onclick = () => toggleEdit(!editState.editing);
+    $("edit-cancel").onclick = () => toggleEdit(false);
+    $("edit-pivot").onclick = () => applyOp({ op: "pivot_long" });
+    $("edit-save").onclick = saveEdited;
     $("preview-modal").addEventListener("click", (e) => {
       if (e.target === $("preview-modal")) closePreview();
     });

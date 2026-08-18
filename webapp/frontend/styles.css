@@ -195,6 +195,21 @@ a{color:var(--seam);text-decoration:none;}
 .modal-card{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);
   box-shadow:var(--shadow-lg);width:min(1100px,96vw);max-height:88vh;display:flex;
   flex-direction:column;overflow:hidden;animation:rise .2s ease;}
+.edit-bar{display:flex;align-items:center;gap:8px;padding:10px 20px;border-bottom:1px solid var(--line);
+  background:var(--seam-soft);}
+.edit-bar .eb-hint{font-size:12px;color:var(--muted);font-family:var(--mono);}
+.edit-bar .eb-grow{flex:1;}
+.edit-bar input{font-size:12px;padding:5px 8px;}
+.modal-body.editing table.data tr{cursor:default;}
+.modal-body.editing table.data td:first-child{cursor:text;}
+.modal-body.editing table.data td:first-child:hover{outline:1px dashed var(--seam);}
+.modal-body.editing table.data th.promote,.modal-body.editing table.data td.rowdel{cursor:pointer;}
+.row-tools{display:inline-flex;gap:4px;margin-right:6px;}
+.row-tools button{border:1px solid var(--line-2);background:var(--surface);border-radius:5px;
+  width:20px;height:20px;line-height:1;font-size:12px;cursor:pointer;color:var(--faint);padding:0;}
+.row-tools button:hover{border-color:var(--seam);color:var(--seam);}
+.mini-note{font-size:11px;color:var(--faint);padding:6px 20px;}
+
 .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
   padding:18px 20px;border-bottom:1px solid var(--line);}
 .modal-title{font-family:var(--disp);font-weight:600;font-size:16px;}

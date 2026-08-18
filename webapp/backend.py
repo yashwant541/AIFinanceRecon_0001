@@ -106,6 +106,17 @@ def _filter_tables(extractions, included):
     return out or extractions
 
 
+def _find_table(store, side, tid):
+    """Locate a FinancialTable by side + table id within a session."""
+    exts = (store["session"].left_extractions if side == "left"
+            else store["session"].right_extractions)
+    for e in exts:
+        for t in e.document.tables:
+            if api.table_id(e.document.filename, t.name) == tid:
+                return t
+    return None
+
+
 def _tables_meta(extractions) -> list:
     out = []
     for e in extractions:
@@ -300,6 +311,62 @@ def upload_staged():
                     "side_columns": session.columns(side),
                     "side_tables": _tables_meta(side_ext),
                     "side_file_count": len(side_ext)})
+
+
+@app.route("/table_edit", methods=["POST"])
+def table_edit():
+    """Apply edit ops to a table and return the new {columns, rows} + QC.
+
+    Non-destructive: computes a preview from the stored table each call, so the
+    frontend can send the full op list and always get a consistent result.
+    """
+    from financial_reconciliation.extraction.table_ops import apply_ops, is_complex
+    from financial_reconciliation.extraction.qc import reconcile_subtotals
+    body = request.get_json(force=True)
+    try:
+        store = _get(body.get("sid", ""))
+    except KeyError as e:
+        return jsonify({"error": str(e)}), 404
+    base = _find_table(store, body.get("side"), body.get("table_id", ""))
+    if base is None:
+        return jsonify({"error": "table not found"}), 404
+    table = {"columns": base.columns,
+             "rows": [[r.values.get(c) for c in base.columns] for r in base.records]}
+    try:
+        edited = apply_ops(table, body.get("ops", []))
+    except Exception as e:  # noqa: BLE001
+        return jsonify({"error": f"could not apply edits: {e}"}), 400
+    rows_as_dicts = [dict(zip(edited["columns"], r)) for r in edited["rows"]]
+    qc = reconcile_subtotals(edited["columns"], rows_as_dicts)
+    return jsonify({"columns": edited["columns"], "rows": edited["rows"],
+                    "total_rows": len(edited["rows"]),
+                    "is_complex": is_complex(edited), "qc": qc})
+
+
+@app.route("/table_save", methods=["POST"])
+def table_save():
+    """Save an edited table to the reference library as Filename + Tablename."""
+    from financial_reconciliation.extraction.table_ops import apply_ops
+    body = request.get_json(force=True)
+    try:
+        store = _get(body.get("sid", ""))
+    except KeyError as e:
+        return jsonify({"error": str(e)}), 404
+    base = _find_table(store, body.get("side"), body.get("table_id", ""))
+    if base is None:
+        return jsonify({"error": "table not found"}), 404
+    table = {"columns": base.columns,
+             "rows": [[r.values.get(c) for c in base.columns] for r in base.records]}
+    edited = apply_ops(table, body.get("ops", []))
+    ref_id = (body.get("name")
+              or f"{base.source_file} - {base.name}").strip()
+    processed = {"source": ref_id, "format": "finrecon.processed.v1",
+                 "layout": "long" if len(edited["columns"]) <= 3 else "wide",
+                 "tables": [{"name": base.name, "columns": edited["columns"],
+                             "rows": [dict(zip(edited["columns"], r))
+                                      for r in edited["rows"]]}]}
+    saved = _LIBRARY.save(ref_id, processed)
+    return jsonify({"ok": True, "ref_id": saved, "rows": len(edited["rows"])})
 
 
 @app.route("/table_preview", methods=["POST"])
